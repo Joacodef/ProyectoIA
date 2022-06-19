@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <cstring>
 #define RADIO_TIERRA 4182.44949
 using namespace std;
 
@@ -91,25 +92,36 @@ void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* n
         archivo >> nodosAux[i-1].latitud;
         i++;
     }
-    nodosAux[72].mostrar();
-    *nodos = *nodosAux;
+    memcpy(nodos,nodosAux,sizeof(Nodo)*(numClientes+numClientes+1));
     free(nodosAux);
 }
 
 int main() {
-    //EXTRACCION DE DATOS DE ARCHIVOS:
+    //---EXTRACCION DE DATOS DE ARCHIVOS:---
     ifstream archivo("Instancias/AB101.dat");
     if(archivo.is_open()){
         Instancia inst;
         inst = extraerInstancia(archivo);
         Nodo *nodos= (Nodo*)malloc(sizeof(Nodo)*(inst.numClientes+inst.numClientes+1));
         extraerNodos(archivo,inst.numEstaciones,inst.numClientes,nodos);
-        nodos[22].mostrar();
+        Nodo depot = nodos[0];
+        Nodo estaciones[inst.numEstaciones];
+        Nodo clientes[inst.numClientes];
+        //depot.mostrar();
+        for(int i=0;i<inst.numEstaciones;i++){
+            estaciones[i] = nodos[i+1];
+            //estaciones[i].mostrar();
+        }
+        for(int i=0;i<inst.numClientes;i++){
+            clientes[i] = nodos[i+1+inst.numEstaciones];
+            //clientes[i].mostrar();
+        }
+        free(nodos);
     }
     else{
         cout << "ERROR EN LECTURA DE ARCHIVO\n";
     }
-    //FIN DE EXTRACCION DE DATOS
+    //---FIN DE EXTRACCION DE DATOS---
 
 
   return 0;
