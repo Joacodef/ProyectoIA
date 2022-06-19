@@ -43,6 +43,13 @@ class Instancia{
     }
 };
 
+class Vehiculo{
+    int recorrido[30];
+    int tiempoRecorrido;
+    int combustibleRestante;
+    double distanciaRecorrida;
+};
+
 double aRadianes(double num){
     double rad = 0.0;
     rad = M_PI * (num/180.0);
@@ -122,6 +129,14 @@ int main() {
         cout << "ERROR EN LECTURA DE ARCHIVO\n";
     }
     //---FIN DE EXTRACCION DE DATOS---
+    
+    int cantidadAutos = 10;
+    int tours[10][20];
+
+    for(int i=0; i<10; i++){
+        tours[i][1];
+    }
+
 
 
   return 0;
