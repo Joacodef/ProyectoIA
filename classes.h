@@ -178,7 +178,7 @@ Vehiculo::Vehiculo(){
 }
 
 void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia){
-    recorrido.insert(nodo);
-    tiempoTranscurrido += distancia/velocidad;
-    distanciaRecorrida += distancia;
+    //recorrido.insert(nodo);
+    //tiempoTranscurrido += distancia/velocidad;
+    //distanciaRecorrida += distancia;
 }

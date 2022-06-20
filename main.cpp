@@ -6,18 +6,19 @@
 
 using namespace std;
 
-
-
-
 int main() {
 
     //-----EXTRACCION DE DATOS DE ARCHIVOS:-----
     //string nombreArchivo = "Instancias/AB101.dat";
-    ifstream archivo("Instancias/AB101.dat");
+    ifstream archivo("Instancias/AB102.dat");
     Instancia inst;
     Nodo *nodos;
     if(archivo.is_open()){
         inst = extraerInstancia(archivo);
+        if(inst.nombre == ""){
+            cout << "\nERROR EN EXTRACCION DE INSTANCIA\n";
+            exit(-1);
+        }
         //Almacenar nodos en variable de heap:
         nodos = (Nodo*)malloc(sizeof(Nodo)*(inst.numClientes+inst.numClientes+1));
         extraerNodos(archivo,inst.numEstaciones,inst.numClientes,nodos);
@@ -33,6 +34,7 @@ int main() {
     //depot.mostrar();
     for(int i=0;i<inst.numEstaciones;i++){
         estaciones[i] = nodos[i+1];
+        //estaciones[i].mostrar();
     }
     for(int i=0;i<inst.numClientes;i++){
         clientes[i] = nodos[i+1+inst.numEstaciones];
@@ -59,11 +61,18 @@ int main() {
             Nodo nodoVehiActual = vehi[i].recorrido.curr->data;
             //Encontrar un cliente cercano que no haya sido visitado:
             nodoClienteCercano = nodoMenorDistancia(nodoVehiActual, clientes, inst.numClientes, nodosRestringidos[i], distanciaAlCliente);
+            
+            //Chequear si se encontró
+            //if(!nodoClienteCercano)
+            
             //Chequear que se cumplan restricciones de distMax:
-
+            
             //Chequear que se cumplan restricciones de tMax:
+
+            //Asignar cliente a lista de recorrido en vehiculo actual
             vehi[i].agregarParada(*nodoClienteCercano, inst.velocidad, *distanciaAlCliente);
             for(int i = 0; i < numVehiculos; i++){
+                //Agregar en todas las listas de nodos restringidos el cliente asignado
                 nodosRestringidos[i].moveToEnd();
                 nodosRestringidos[i].insert(*nodoClienteCercano);
             }
