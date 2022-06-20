@@ -10,7 +10,7 @@ using namespace std;
 int main() {
 
     //-----EXTRACCIÓN DE DATOS DE ARCHIVOS:-----
-    string nombreArchivo = "AB102";
+    string nombreArchivo = "AB101";
     string archivoInput = "Instancias/"+nombreArchivo+".dat";
     time_t start, end;
     ifstream input(archivoInput);
@@ -54,6 +54,7 @@ int main() {
     ListaVehiculos vehiculos = ListaVehiculos();
     ListaNodos clientesVisitados = ListaNodos();
     double *distanciaAlCliente = (double*)malloc(sizeof(double));
+    double *distanciaAEstacion = (double*)malloc(sizeof(double));
     Nodo *nodoClienteCercano, *nodoSiguiente;
     int j = 0;
     while(!finEjecucion){
@@ -73,32 +74,83 @@ int main() {
             vehiculoActual->recorrido.moveToEnd();
             Nodo nodoVehiculoActual = vehiculoActual->recorrido.curr->data;
 
-            //Buscar el cliente a menor distancia no asignado a otros vehículos
-            nodoClienteCercano = nodoMenorDistancia(nodoVehiculoActual, clientes, inst.numClientes, clientesVisitados, distanciaAlCliente);
             
             //--------Comprobación de restricciones--------
 
-            //Si no hay cliente disponible (todos asignados), se debe terminar todo
-            if(!nodoClienteCercano){
+
+            //Si no hay clientes disponible (todos asignados), se debe terminar todo
+            if(clientesVisitados.listSize == abs(inst.numClientes)){
                 nodoSiguiente = &depot;
                 recorridoTerminado = true;
                 finEjecucion = true;
             }  
             else{
+                //Buscar el cliente a menor distancia no asignado a otros vehículos
+                nodoClienteCercano = nodoMenorDistancia(nodoVehiculoActual, clientes, inst.numClientes, clientesVisitados, distanciaAlCliente);
                 //Ver si se tiene tiempo para llegar directamente
                 double tiempoEnLlegar = *distanciaAlCliente/inst.velocidad;
                 if(vehiculoActual->tiempoTranscurrido+tiempoEnLlegar+inst.tiempoServicio < inst.maxTiempo){
                     //Chequear combustible suficiente
-                        //Si no se cumple, buscar estación más cercana desde la que haya tiempo suficiente para volver al depot
-
-                    //Si se tiene, ver si desde ese cliente se tendría combustible para llegar a estación más cercana
-                    //Además, chequear si se tiene tiempo y combustible para volver directamente al depot
-                    //O, si se tiene tiempo para pasar a una estación antes de pasar al depot
-                        
-                        /*BACKTRACKING???????? CUANDO LO HAGO?????*/
-                    nodoSiguiente = nodoClienteCercano;//Sólo hacer esto si se cumple todo
+                    if(vehiculoActual->distanciaDesdeRecarga+*distanciaAlCliente > inst.maxDistancia){
+                        // Si no hay combustible, buscar estación más cercana desde la que haya tiempo suficiente para volver al depot
+                        bool EstacionEncontrada = false;
+                        ListaNodos estacionesNoPermitidas = ListaNodos();
+                        while(!EstacionEncontrada){
+                            if(estacionesNoPermitidas.listSize == abs(inst.numEstaciones)){
+                                //No hay estaciones que me permitan volver al depot (no puedo volver al depot)
+                                //HACER BACKTRACKING?
+                                nodoSiguiente = &depot;
+                                recorridoTerminado = true;
+                                break;
+                            }
+                            //Comprobar todas las estaciones, si ninguna cumple, se vuelve al depot                            
+                            nodoSiguiente = nodoMenorDistancia(nodoVehiculoActual, estaciones, inst.numEstaciones, estacionesNoPermitidas, distanciaAEstacion);
+                            double distDepotEst = calcularDistancia(nodoSiguiente->longitud,nodoSiguiente->latitud,depot.longitud,depot.latitud);
+                            double tiempoActualEst = *distanciaAEstacion/inst.velocidad;
+                            double tiempoDepotEst = distDepotEst/inst.velocidad;
+                            if(vehiculoActual->tiempoTranscurrido + tiempoDepotEst + inst.tiempoRecarga + tiempoActualEst < inst.maxTiempo){
+                                EstacionEncontrada = true;
+                            }
+                            else{
+                                estacionesNoPermitidas.insert(*nodoSiguiente);
+                            }
+                        }
+                    }
+                    else{
+                        //Si se tiene combustible, chequear si se tiene tiempo para volver directamente al depot desde el cliente
+                        double distanciaClienteDepot = calcularDistancia(nodoClienteCercano->longitud,nodoClienteCercano->latitud,depot.longitud,depot.latitud);
+                        double tiempoClienteYDepot = (distanciaClienteDepot+*distanciaAlCliente)/inst.velocidad;
+                        if(vehiculoActual->tiempoTranscurrido + tiempoClienteYDepot + inst.tiempoServicio > inst.maxTiempo){
+                            //No se tiene tiempo para ir al cliente mas cercano y volver, se debe vuelve en seguida al depot
+                            nodoSiguiente = &depot;
+                            recorridoTerminado = true;
+                        }
+                        else{
+                            //Si se tiene tiempo, ver si desde ese cliente se tendría combustible para llegar a estación más cercana (sino se quedaría "atascado" en el cliente)
+                            ListaNodos listaAux = ListaNodos();
+                            Nodo *estacionCercana = nodoMenorDistancia(*nodoClienteCercano,estaciones,inst.numEstaciones,listaAux,distanciaAEstacion);
+                            if(vehiculoActual->distanciaDesdeRecarga + *distanciaAlCliente + *distanciaAEstacion > inst.maxDistancia){
+                                //Ya que no alcanza, se debe recargar combustible o volver al depot, para decidir, se chequea que el tiempo restante sea suficiente
+                                double tiempoEstacion = *distanciaAEstacion / inst.velocidad;
+                                if(vehiculoActual->tiempoTranscurrido + inst.tiempoRecarga + tiempoEstacion > inst.maxTiempo){
+                                    //No se puede ir a la estacion de recarga por falta de tiempo, entonces se debe volver al depot, aun si se excede distancia
+                                    nodoSiguiente = &depot;
+                                    recorridoTerminado = true;
+                                }
+                                else{
+                                    //Se elige recargar combustible en vez de ir al cliente
+                                    nodoSiguiente = estacionCercana;
+                                }
+                            }
+                            else{
+                                //Si se cumplen todas las restricciones, se va al cliente más cercano
+                                nodoSiguiente = nodoClienteCercano;
+                            }
+                        }                        
+                    }                   
                 }
                 else{
+                    //Si no se tiene tiempo para llegar directamente, se vuelve al depot
                     nodoSiguiente = &depot;
                     recorridoTerminado = true;
                 }
@@ -112,7 +164,7 @@ int main() {
             clientesVisitados.insert(*nodoSiguiente);
         }
         j++;
-        if(j==6) finEjecucion = true;
+        if(j==100) finEjecucion = true;
     }
 
     time(&end);
@@ -147,6 +199,7 @@ int main() {
     
     //Liberar memoria
     free(distanciaAlCliente);
+    free(distanciaAEstacion);
   return 0;
 } 
 

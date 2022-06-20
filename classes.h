@@ -184,6 +184,7 @@ void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int 
     recorrido.insert(nodo);
     tiempoTranscurrido += distancia/velocidad;
     distanciaTotalRecorrida += distancia;
+    distanciaDesdeRecarga += distancia;
     if(nodo.tipo=='f') {
         distanciaDesdeRecarga = 0.0;
         tiempoTranscurrido += tiempoRecarga;
