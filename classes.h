@@ -12,15 +12,28 @@ class Nodo{
         char tipo;
         double longitud;
         double latitud;
+        bool visitado;
         Nodo *next;
 
-        void mostrar(){
-            cout << "\nID: " << ID;
-            cout << "\nTipo: " << tipo;
-            cout << "\nLongitud: " << longitud;
-            cout << "\nLatitud: " << latitud << "\n";
-        }
+        Nodo();
+        void mostrar();   
 };
+
+Nodo::Nodo(){
+    ID = 0;
+    tipo = '\0';
+    longitud = 0.0;
+    latitud = 0.0;
+    visitado = false;
+}
+
+void Nodo::mostrar(){
+    cout << "\nID: " << ID;
+    cout << "\nTipo: " << tipo;
+    cout << "\nLongitud: " << longitud;
+    cout << "\nLatitud: " << latitud << "\n";
+}
+
 
 class Instancia{
     public:
@@ -28,22 +41,36 @@ class Instancia{
         int numClientes;
         int numEstaciones;
         int maxTiempo;
-        int maxDistancia;
+        double maxDistancia;
         double velocidad;
         int tiempoServicio;
         int tiempoRecarga;
 
-        void mostrar(){
-            cout << "\nNombre: " << nombre;
-            cout << "\nNumClientes: " << numClientes;
-            cout << "\nNumEstaciones: " << numEstaciones;
-            cout << "\nMaxTiempo: " << maxTiempo;
-            cout << "\nMaxDistancia: " << maxTiempo;
-            cout << "\nVelocidad: " << velocidad;
-            cout << "\nTiempoServicio: " << tiempoServicio;
-            cout << "\nTiempoRecarga: " << tiempoRecarga << "\n";
-        }
+        Instancia();
+        void mostrar();     
 };
+
+Instancia::Instancia(){
+    nombre = "";
+    numClientes = 0;
+    numEstaciones = 0;
+    maxTiempo = 0;
+    maxDistancia = 0.0;
+    velocidad = 0.0;
+    tiempoServicio = 0;
+    tiempoRecarga = 0;
+}
+
+void Instancia::mostrar(){
+    cout << "\nNombre: " << nombre;
+    cout << "\nNumClientes: " << numClientes;
+    cout << "\nNumEstaciones: " << numEstaciones;
+    cout << "\nMaxTiempo: " << maxTiempo;
+    cout << "\nMaxDistancia: " << maxTiempo;
+    cout << "\nVelocidad: " << velocidad;
+    cout << "\nTiempoServicio: " << tiempoServicio;
+    cout << "\nTiempoRecarga: " << tiempoRecarga << "\n";
+}
 
 
 
@@ -66,6 +93,8 @@ void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* n
     int i = 1;
     //Siguientes lineas del archivo:
     while(i <= numClientes+numEstaciones+1){
+        //Inicializar nodo para que valgrind no alegue:
+        nodosAux[i-1] = Nodo();
         archivo >> nodosAux[i-1].ID;
         archivo >> nodosAux[i-1].tipo;
         archivo >> nodosAux[i-1].longitud;
@@ -78,19 +107,20 @@ void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* n
 
 
 
-//Clases y structs para generar las soluciones:
+//Clases y structs para generar las soluciones, Recorrido es una lista enlazada:
 typedef struct tPaso{
     Nodo data;
     struct tPaso *next;
 } tPaso;
 
 class Recorrido{
-    tPaso *head;
-    tPaso *tail;
-    tPaso *curr; // curr apunta al nodo anterior al actual
-    unsigned int listSize;
-    unsigned int pos;
     public:
+        tPaso *head;
+        tPaso *tail;
+        tPaso *curr; // curr apunta al nodo anterior al actual
+        unsigned int listSize;
+        unsigned int pos;
+    
         Recorrido();
         int insert(Nodo item); //insertar en pos actual
         Nodo remove(); //remover nodo en pos actual
@@ -99,6 +129,7 @@ class Recorrido{
         void prev();
         void next();
         void clear();
+        void print();
 };
 
 Recorrido::Recorrido(){
@@ -145,19 +176,36 @@ void Recorrido::next(){if (curr != tail) curr = curr->next; pos++;}
 
 void Recorrido::clear(){
     moveToStart();
-    tail = head;
-    listSize = 0;
-    while(curr != NULL){
+    for(unsigned int i=0;i<listSize+1;i++){
+        if(!curr) break;
         tPaso *aux = curr;
         curr = curr->next;
         free(aux);
     }
-    curr = head;
+}
+
+void Recorrido::print(){
+    moveToStart();
+    next();
+    cout <<"\n";
+    while(curr != tail){
+        cout << curr->data.ID << curr->data.tipo << " -> ";
+        next();
+    }
+    cout << curr->data.ID << curr->data.tipo;
+    cout << "\n";
 }
 
 class Vehiculo{
-    private:
+    public:
         Recorrido recorrido;
         int tiempoRecorrido;
         double distanciaRecorrida;
+
+        Vehiculo();
 };
+
+Vehiculo::Vehiculo(){
+    tiempoRecorrido = 0;
+    distanciaRecorrida = 0.0;
+}
