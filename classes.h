@@ -87,16 +87,22 @@ typedef struct tPaso{
 class Recorrido{
     tPaso *head;
     tPaso *tail;
-    tPaso *curr;
+    tPaso *curr; // curr apunta al nodo anterior al actual
     unsigned int listSize;
     unsigned int pos;
     public:
         Recorrido();
-        int insert(Nodo item);
+        int insert(Nodo item); //insertar en pos actual
+        Nodo remove(); //remover nodo en pos actual
+        void moveToStart();
+        void moveToEnd();
+        void prev();
+        void next();
+        void clear();
 };
 
 Recorrido::Recorrido(){
-    head = tail = curr = (tPaso*)malloc(sizeof(tPaso));
+    head = tail = curr = (tPaso*)malloc(sizeof(tPaso)); // Siempre es la cabecera
     listSize = 0;
     pos = 0;
 }
@@ -111,22 +117,47 @@ int Recorrido::insert(Nodo item){
     return pos;
 }
 
-class Vehiculo{
-    private:
-        Nodo recorrido[30];
-        int tiempoRecorrido;
-        double distanciaRecorrida;
-
-    public:
-        Vehiculo(Nodo depot);
-};
-
-Vehiculo::Vehiculo(Nodo depot){
-    recorrido[0] = depot;
-    tiempoRecorrido = 0;
-    distanciaRecorrida = 0.0;
+Nodo Recorrido::remove(){
+    Nodo eliminado;
+    if(curr==tail) return eliminado;
+    if(curr->next == tail) tail = curr;
+    tPaso *aux = curr->next;
+    eliminado = aux->data;
+    curr->next = curr->next->next;
+    free(aux);
+    return eliminado;
 }
 
+void Recorrido::moveToStart(){curr=head;pos=0;}
 
+void Recorrido::moveToEnd(){curr=tail;pos=listSize;}
 
+void Recorrido::prev(){
+    tPaso *temp;
+    if (curr==head) return;
+    temp = head;
+    while (temp->next != curr) temp = temp->next;
+    curr = temp;
+    pos--;
+}
 
+void Recorrido::next(){if (curr != tail) curr = curr->next; pos++;}
+
+void Recorrido::clear(){
+    moveToStart();
+    tail = head;
+    listSize = 0;
+    while(curr != NULL){
+        tPaso *aux = curr;
+        curr = curr->next;
+        free(aux);
+    }
+    curr = head;
+}
+
+class Vehiculo{
+    private:
+        Recorrido recorrido;
+        int tiempoRecorrido;
+        double distanciaRecorrida;
+};
