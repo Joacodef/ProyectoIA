@@ -1,7 +1,5 @@
-#include <iostream>
-#include <fstream>
 #include <math.h>
-#include <cstring>
+
 using namespace std;
 
 
@@ -72,36 +70,6 @@ void Instancia::mostrar(){
 
 
 
-//Funciones que extraen datos de archivos:
-Instancia extraerInstancia(ifstream& archivo){
-    Instancia inst;
-    archivo >> inst.nombre;
-    archivo >> inst.numClientes;
-    archivo >> inst.numEstaciones;
-    archivo >> inst.maxTiempo;
-    archivo >> inst.maxDistancia;
-    archivo >> inst.velocidad;
-    archivo >> inst.tiempoServicio;
-    archivo >> inst.tiempoRecarga;
-    return inst;
-}
-
-void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* nodos){
-    Nodo *nodosAux= (Nodo*)malloc(sizeof(Nodo)*(numClientes+numClientes+1));
-    int i = 1;
-    //Siguientes lineas del archivo:
-    while(i <= numClientes+numEstaciones+1){
-        //Inicializar nodo para que valgrind no alegue:
-        nodosAux[i-1] = Nodo();
-        archivo >> nodosAux[i-1].ID;
-        archivo >> nodosAux[i-1].tipo;
-        archivo >> nodosAux[i-1].longitud;
-        archivo >> nodosAux[i-1].latitud;
-        i++;
-    }
-    memcpy(nodos,nodosAux,sizeof(Nodo)*(numClientes+numClientes+1));
-    free(nodosAux);
-}
 
 
 
@@ -197,7 +165,7 @@ void ListaNodos::print(){
 class Vehiculo{
     public:
         ListaNodos recorrido;
-        int tiempoRecorrido;
+        int tiempoTranscurrido;
         double distanciaRecorrida;
 
         Vehiculo();
@@ -205,12 +173,12 @@ class Vehiculo{
 };
 
 Vehiculo::Vehiculo(){
-    tiempoRecorrido = 0;
+    tiempoTranscurrido = 0;
     distanciaRecorrida = 0.0;
 }
 
 void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia){
     recorrido.insert(nodo);
-    tiempoRecorrido += distancia/velocidad;
+    tiempoTranscurrido += distancia/velocidad;
     distanciaRecorrida += distancia;
 }

@@ -2,14 +2,17 @@
 #include <fstream>
 #include <cstring>
 #include "classes.h"
-#include "formulas.h"
+#include "functions.h"
 
 using namespace std;
+
+
+
 
 int main() {
 
     //-----EXTRACCION DE DATOS DE ARCHIVOS:-----
-
+    //string nombreArchivo = "Instancias/AB101.dat";
     ifstream archivo("Instancias/AB101.dat");
     Instancia inst;
     Nodo *nodos;
@@ -35,6 +38,7 @@ int main() {
         clientes[i] = nodos[i+1+inst.numEstaciones];
         //clientes[i].mostrar();
     }
+    archivo.close();
     free(nodos);
     
 
@@ -53,9 +57,11 @@ int main() {
         for(int i = 0; i < numVehiculos; i++){
             vehi[i].recorrido.moveToEnd();
             Nodo nodoVehiActual = vehi[i].recorrido.curr->data;
-            //Probar que las posibles asignaciones esten permitidas segun restricciones
+            //Encontrar un cliente cercano que no haya sido visitado:
             nodoClienteCercano = nodoMenorDistancia(nodoVehiActual, clientes, inst.numClientes, nodosRestringidos[i], distanciaAlCliente);
-            
+            //Chequear que se cumplan restricciones de distMax:
+
+            //Chequear que se cumplan restricciones de tMax:
             vehi[i].agregarParada(*nodoClienteCercano, inst.velocidad, *distanciaAlCliente);
             for(int i = 0; i < numVehiculos; i++){
                 nodosRestringidos[i].moveToEnd();
@@ -65,10 +71,23 @@ int main() {
         j++;
         if(j==5) flag = true;
     }
-    for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.print();
+
+    //Generar archivo solucion:
+    /*
+    ofstream solucion(nombreArchivo);
+    for(int i = 0; i < numVehiculos; i++){ 
+        vehi[i].recorrido.print();
+        //solucion << "Ruta vehiculo "<< i << "\t" << vehi[i].distanciaRecorrida << "\t" << vehi[i].tiempoTranscurrido << "\n";
+    }
+     
+    solucion.close();*/
+
+    
     //Liberar memoria
     for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.clear();
     for(int i = 0; i < numVehiculos; i++) nodosRestringidos[i].clear();
     free(distanciaAlCliente);
   return 0;
 } 
+
+
