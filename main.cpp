@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <bits/stdc++.h>
 #include "classes.h"
 #include "functions.h"
 
@@ -8,20 +9,23 @@ using namespace std;
 
 int main() {
 
-    //-----EXTRACCION DE DATOS DE ARCHIVOS:-----
-    //string nombreArchivo = "Instancias/AB101.dat";
-    ifstream archivo("Instancias/AB102.dat");
+    //-----EXTRACCIÓN DE DATOS DE ARCHIVOS:-----
+    string nombreArchivo = "AB102";
+    string archivoInput = "Instancias/"+nombreArchivo+".dat";
+    time_t start, end;
+    ifstream input(archivoInput);
     Instancia inst;
     Nodo *nodos;
-    if(archivo.is_open()){
-        inst = extraerInstancia(archivo);
+    time(&start);
+    if(input.is_open()){
+        inst = extraerInstancia(input);
         if(inst.nombre == ""){
             cout << "\nERROR EN EXTRACCION DE INSTANCIA\n";
             exit(-1);
         }
         //Almacenar nodos en variable de heap:
         nodos = (Nodo*)malloc(sizeof(Nodo)*(inst.numClientes+inst.numClientes+1));
-        extraerNodos(archivo,inst.numEstaciones,inst.numClientes,nodos);
+        extraerNodos(input,inst.numEstaciones,inst.numClientes,nodos);
     }
     else{
         cout << "ERROR EN LECTURA DE ARCHIVO\n";
@@ -40,61 +44,108 @@ int main() {
         clientes[i] = nodos[i+1+inst.numEstaciones];
         //clientes[i].mostrar();
     }
-    archivo.close();
+    input.close();
     free(nodos);
     
 
-    bool flag = false;
-    int numVehiculos = 10;
+    //-----LOOP PRINCIPAL, ENVÍO DE VEHÍCULOS-----
+    bool finEjecucion = false;
+    bool recorridoTerminado = false;
+    ListaVehiculos vehiculos = ListaVehiculos();
+    ListaNodos clientesVisitados = ListaNodos();
     double *distanciaAlCliente = (double*)malloc(sizeof(double));
-    ListaNodos nodosRestringidos[numVehiculos];
-    for(int i = 0; i < numVehiculos; i++) nodosRestringidos[i] = ListaNodos();
-    Nodo *nodoClienteCercano;
-    Vehiculo vehi[numVehiculos];
-    //Inicializar vehiculos con el deposito
-    for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.insert(depot);
-    //LOOP PRINCIPAL, que itera sobre cada vehiculo y le intenta asignar el cliente mas cercano
+    Nodo *nodoClienteCercano, *nodoSiguiente;
     int j = 0;
-    while(!flag){
-        for(int i = 0; i < numVehiculos; i++){
-            vehi[i].recorrido.moveToEnd();
-            Nodo nodoVehiActual = vehi[i].recorrido.curr->data;
-            //Encontrar un cliente cercano que no haya sido visitado:
-            nodoClienteCercano = nodoMenorDistancia(nodoVehiActual, clientes, inst.numClientes, nodosRestringidos[i], distanciaAlCliente);
-            
-            //Chequear si se encontró
-            //if(!nodoClienteCercano)
-            
-            //Chequear que se cumplan restricciones de distMax:
-            
-            //Chequear que se cumplan restricciones de tMax:
+    while(!finEjecucion){
+        //Crear vehículo en lista de vehículos
+        Vehiculo vehi = Vehiculo();
+        vehiculos.moveToEnd();
+        vehiculos.insert(vehi);
+        vehiculos.moveToEnd();
 
-            //Asignar cliente a lista de recorrido en vehiculo actual
-            vehi[i].agregarParada(*nodoClienteCercano, inst.velocidad, *distanciaAlCliente);
-            for(int i = 0; i < numVehiculos; i++){
-                //Agregar en todas las listas de nodos restringidos el cliente asignado
-                nodosRestringidos[i].moveToEnd();
-                nodosRestringidos[i].insert(*nodoClienteCercano);
+        //Inicializar vehiculo en depot
+        Vehiculo *vehiculoActual = &vehiculos.curr->data;
+        vehiculoActual->agregarParada(depot,inst.velocidad,0.0,0,0);
+
+        recorridoTerminado = false;
+        while(!recorridoTerminado){
+            //Obtener último nodo del recorrido del vehículo (el nodo en el que está actualmente)
+            vehiculoActual->recorrido.moveToEnd();
+            Nodo nodoVehiculoActual = vehiculoActual->recorrido.curr->data;
+
+            //Buscar el cliente a menor distancia no asignado a otros vehículos
+            nodoClienteCercano = nodoMenorDistancia(nodoVehiculoActual, clientes, inst.numClientes, clientesVisitados, distanciaAlCliente);
+            
+            //--------Comprobación de restricciones--------
+
+            //Si no hay cliente disponible (todos asignados), se debe terminar todo
+            if(!nodoClienteCercano){
+                nodoSiguiente = &depot;
+                recorridoTerminado = true;
+                finEjecucion = true;
+            }  
+            else{
+                //Ver si se tiene tiempo para llegar directamente
+                double tiempoEnLlegar = *distanciaAlCliente/inst.velocidad;
+                if(vehiculoActual->tiempoTranscurrido+tiempoEnLlegar+inst.tiempoServicio < inst.maxTiempo){
+                    //Chequear combustible suficiente
+                        //Si no se cumple, buscar estación más cercana desde la que haya tiempo suficiente para volver al depot
+
+                    //Si se tiene, ver si desde ese cliente se tendría combustible para llegar a estación más cercana
+                    //Además, chequear si se tiene tiempo y combustible para volver directamente al depot
+                    //O, si se tiene tiempo para pasar a una estación antes de pasar al depot
+                        
+                        /*BACKTRACKING???????? CUANDO LO HAGO?????*/
+                    nodoSiguiente = nodoClienteCercano;//Sólo hacer esto si se cumple todo
+                }
+                else{
+                    nodoSiguiente = &depot;
+                    recorridoTerminado = true;
+                }
             }
+
+            //Asignar al final del recorrido de vehículo el nodo correspondiente
+            vehiculoActual->recorrido.moveToEnd();
+            vehiculoActual->agregarParada(*nodoSiguiente, inst.velocidad, *distanciaAlCliente, inst.tiempoServicio, inst.tiempoRecarga);
+
+            //Además, agregar este nodo a lista de clientes visitados
+            clientesVisitados.insert(*nodoSiguiente);
         }
         j++;
-        if(j==5) flag = true;
+        if(j==6) finEjecucion = true;
     }
 
-    //Generar archivo solucion:
+    time(&end);
+    vehiculos.moveToStart();
+    vehiculos.next();
+    for(unsigned int i = 0;i<vehiculos.listSize;i++){
+        vehiculos.curr->data.recorrido.print();
+        cout << "Distancia recorrida: "<< vehiculos.curr->data.distanciaTotalRecorrida<<"\n";
+        cout << "Tiempo transcurrido: "<< vehiculos.curr->data.tiempoTranscurrido<<"\n";
+        vehiculos.next();
+    }
+
     /*
-    ofstream solucion(nombreArchivo);
-    for(int i = 0; i < numVehiculos; i++){ 
-        vehi[i].recorrido.print();
-        //solucion << "Ruta vehiculo "<< i << "\t" << vehi[i].distanciaRecorrida << "\t" << vehi[i].tiempoTranscurrido << "\n";
-    }
-     
-    solucion.close();*/
+    //Generar archivo solución:
+    string archivoOutput = "Soluciones/"+nombreArchivo+".out";
+    ofstream output(archivoOutput);
+    double tiempoEjecucion = double(end-start) / double(CLOCKS_PER_SEC);
 
+    //Calcular distancia total recorrida
+    float sumaDistancias = 0.0;
+    for(int i = 0; i < vehiculos.listSize; i++) sumaDistancias += vehi[i].distanciaRecorrida;
+    
+    //Escribir en el archivo de output
+    output << std::fixed << sumaDistancias << "    " << inst.numClientes << "     " << vehiculos.listSize << "     "<< tiempoEjecucion <<"\n";
+    for(int i = 0; i < vehiculos.listSize; i++){ 
+        //vehi[i].recorrido.print();
+        output << std::fixed << "Ruta vehiculo "<< i << "     " << vehi[i].distanciaRecorrida << "    " << vehi[i].tiempoTranscurrido << "\n";
+    }
+    
+    output.close();
+    */
     
     //Liberar memoria
-    for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.clear();
-    for(int i = 0; i < numVehiculos; i++) nodosRestringidos[i].clear();
     free(distanciaAlCliente);
   return 0;
 } 

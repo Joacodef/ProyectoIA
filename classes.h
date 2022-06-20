@@ -3,33 +3,7 @@
 using namespace std;
 
 
-//Clases que almacenan de datos de archivos:
-class Nodo{
-    public:
-        int ID;
-        char tipo;
-        double longitud;
-        double latitud;
-        Nodo *next;
-
-        Nodo();
-        void mostrar();   
-};
-
-Nodo::Nodo(){
-    ID = -1;
-    tipo = '\0';
-    longitud = 0.0;
-    latitud = 0.0;
-}
-
-void Nodo::mostrar(){
-    cout << "\nID: " << ID;
-    cout << "\nTipo: " << tipo;
-    cout << "\nLongitud: " << longitud;
-    cout << "\nLatitud: " << latitud << "\n";
-}
-
+//Clase que representa a la instancia:
 
 class Instancia{
     public:
@@ -69,15 +43,40 @@ void Instancia::mostrar(){
 }
 
 
+//Clases y métodos relativas a los nodos de la instancia:
 
+class Nodo{
+    public:
+        int ID;
+        char tipo;
+        double longitud;
+        double latitud;
+        Nodo *next;
 
+        Nodo();
+        void mostrar();   
+};
 
+Nodo::Nodo(){
+    ID = -1;
+    tipo = '\0';
+    longitud = 0.0;
+    latitud = 0.0;
+}
 
-//Clases y structs para generar las soluciones, ListaNodos es una lista enlazada:
+void Nodo::mostrar(){
+    cout << "\nID: " << ID;
+    cout << "\nTipo: " << tipo;
+    cout << "\nLongitud: " << longitud;
+    cout << "\nLatitud: " << latitud << "\n";
+}
+
 typedef struct tPaso{
     Nodo data;
     struct tPaso *next;
 } tPaso;
+
+//ListaNodos es una lista enlazada
 
 class ListaNodos{
     public:
@@ -162,23 +161,112 @@ void ListaNodos::print(){
     cout << "\n";
 }
 
+
+// Clases y métodos relativas a vehículos:
+
 class Vehiculo{
     public:
         ListaNodos recorrido;
         int tiempoTranscurrido;
-        double distanciaRecorrida;
+        double distanciaTotalRecorrida;
+        double distanciaDesdeRecarga;
 
         Vehiculo();
-        void agregarParada(Nodo nodo, double velocidad, double distancia);
+        void agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga);
 };
 
 Vehiculo::Vehiculo(){
     tiempoTranscurrido = 0;
-    distanciaRecorrida = 0.0;
+    distanciaTotalRecorrida = 0.0;
 }
 
-void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia){
-    //recorrido.insert(nodo);
-    //tiempoTranscurrido += distancia/velocidad;
-    //distanciaRecorrida += distancia;
+void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga){
+    recorrido.insert(nodo);
+    tiempoTranscurrido += distancia/velocidad;
+    distanciaTotalRecorrida += distancia;
+    if(nodo.tipo=='f') {
+        distanciaDesdeRecarga = 0.0;
+        tiempoTranscurrido += tiempoRecarga;
+    }
+    else if(nodo.tipo=='c'){
+        tiempoTranscurrido += tiempoServicio;
+    }
+}
+
+typedef struct tVehi{
+    Vehiculo data;
+    struct tVehi *next;
+} tVehi;
+
+//ListaVehiculos tambien es una lista enlazada
+
+class ListaVehiculos{
+    public:
+    tVehi *head;
+    tVehi *tail;
+    tVehi *curr; // curr apunta al nodo anterior al actual
+    unsigned int listSize;
+    unsigned int pos;
+
+    ListaVehiculos();
+    int insert(Vehiculo item); //insertar en pos actual
+    Vehiculo remove(); //remover nodo en pos actual
+    void moveToStart();
+    void moveToEnd();
+    void prev();
+    void next();
+    void clear();
+    void print();
+};
+
+ListaVehiculos::ListaVehiculos(){
+    head = tail = curr = (tVehi*)malloc(sizeof(tVehi)); // Siempre es la cabecera
+    listSize = 0;
+    pos = 0;
+}
+
+int ListaVehiculos::insert(Vehiculo item){
+    tVehi *aux = curr->next;
+    curr->next = (tVehi*)malloc(sizeof(tVehi));
+    curr->next->data = item;
+    curr->next->next = aux;
+    if(curr == tail) tail = curr->next;
+    listSize++;
+    return pos;
+}
+
+Vehiculo ListaVehiculos::remove(){
+    Vehiculo eliminado;
+    if(curr==tail) return eliminado;
+    if(curr->next == tail) tail = curr;
+    tVehi *aux = curr->next;
+    eliminado = aux->data;
+    curr->next = curr->next->next;
+    free(aux);
+    return eliminado;
+}
+
+void ListaVehiculos::moveToStart(){curr=head;pos=0;}
+
+void ListaVehiculos::moveToEnd(){curr=tail;pos=listSize;}
+
+void ListaVehiculos::prev(){
+    tVehi *temp;
+    if (curr==head) return;
+    temp = head;
+    while (temp->next != curr) temp = temp->next;
+    curr = temp;
+    pos--;
+}
+
+void ListaVehiculos::next(){if (curr != tail) curr = curr->next; pos++;}
+
+void ListaVehiculos::clear(){
+    moveToStart();
+    for(unsigned int i=0;i<listSize+1;i++){
+        if(!curr) break;
+        tVehi *aux = curr;
+        curr = curr->next;
+        free(aux);
+    }
 }
