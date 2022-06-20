@@ -11,6 +11,9 @@ double haversine(float num){
     return pow(sin(num/2.0),2);
 }
 
+
+//Funcion que calcula la distancia entre 2 puntos segun la formula de Haversine.
+
 double calcularDistancia(double lon1, double lat1, double lon2, double lat2){
     double distancia = 0.0;
 
@@ -26,6 +29,9 @@ double calcularDistancia(double lon1, double lat1, double lon2, double lat2){
     return distancia;
 }
 
+
+//Funcion para calcular todas las distancias desde un nodo central a un conjunto de nodos.
+
 double *calcularTodasDistancias(Nodo centro, Nodo *demasNodos, int size){
     double *distancias = (double*)malloc(sizeof(double)*size);
     for(int i=0; i<size;i++){
@@ -36,19 +42,39 @@ double *calcularTodasDistancias(Nodo centro, Nodo *demasNodos, int size){
     return distancias;
 }
 
-Nodo* calcularMenorDistancia(Nodo centro, Nodo *demasNodos, int size){
+
+//Funcion que chequea si el nodo "actual" está en el arreglo de "nodosRestringidos".
+
+bool nodoRestringido(Nodo actual,ListaNodos nodosRestringidos){
+    nodosRestringidos.moveToStart();
+    nodosRestringidos.next();
+    for(unsigned int i = 0;i<nodosRestringidos.listSize+1;i++){
+        if(actual.ID == nodosRestringidos.curr->data.ID && actual.tipo == nodosRestringidos.curr->data.tipo){
+            return true;
+        }
+        nodosRestringidos.next();
+    }
+    return false;
+}
+
+
+//Funcion que retorna el nodo que esté mas cerca del nodo "centro", chequeando si esta restringido.
+
+Nodo* nodoMenorDistancia(Nodo centro, Nodo *demasNodos, int size, ListaNodos nodosRestringidos, double *distPtr){
     double menor = 999999999.9;
     Nodo *menorNodo;
     double distancia = 0.0;
     for(int i=0; i<size;i++){
         if(centro.ID == demasNodos[i].ID && centro.tipo == demasNodos[i].tipo) continue;
-        if(demasNodos[i].visitado) continue;
+        if(nodoRestringido(demasNodos[i],nodosRestringidos)) continue;
         distancia = calcularDistancia(centro.longitud,centro.latitud,
                                     demasNodos[i].longitud,demasNodos[i].latitud);
         if(distancia<menor){
             menor = distancia;
+            *distPtr = distancia;
             menorNodo = &demasNodos[i];
         }      
     }
     return menorNodo;
 }
+

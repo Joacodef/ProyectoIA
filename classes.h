@@ -12,7 +12,6 @@ class Nodo{
         char tipo;
         double longitud;
         double latitud;
-        bool visitado;
         Nodo *next;
 
         Nodo();
@@ -20,11 +19,10 @@ class Nodo{
 };
 
 Nodo::Nodo(){
-    ID = 0;
+    ID = -1;
     tipo = '\0';
     longitud = 0.0;
     latitud = 0.0;
-    visitado = false;
 }
 
 void Nodo::mostrar(){
@@ -107,13 +105,13 @@ void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* n
 
 
 
-//Clases y structs para generar las soluciones, Recorrido es una lista enlazada:
+//Clases y structs para generar las soluciones, ListaNodos es una lista enlazada:
 typedef struct tPaso{
     Nodo data;
     struct tPaso *next;
 } tPaso;
 
-class Recorrido{
+class ListaNodos{
     public:
         tPaso *head;
         tPaso *tail;
@@ -121,7 +119,7 @@ class Recorrido{
         unsigned int listSize;
         unsigned int pos;
     
-        Recorrido();
+        ListaNodos();
         int insert(Nodo item); //insertar en pos actual
         Nodo remove(); //remover nodo en pos actual
         void moveToStart();
@@ -132,13 +130,13 @@ class Recorrido{
         void print();
 };
 
-Recorrido::Recorrido(){
+ListaNodos::ListaNodos(){
     head = tail = curr = (tPaso*)malloc(sizeof(tPaso)); // Siempre es la cabecera
     listSize = 0;
     pos = 0;
 }
 
-int Recorrido::insert(Nodo item){
+int ListaNodos::insert(Nodo item){
     tPaso *aux = curr->next;
     curr->next = (tPaso*)malloc(sizeof(tPaso));
     curr->next->data = item;
@@ -148,7 +146,7 @@ int Recorrido::insert(Nodo item){
     return pos;
 }
 
-Nodo Recorrido::remove(){
+Nodo ListaNodos::remove(){
     Nodo eliminado;
     if(curr==tail) return eliminado;
     if(curr->next == tail) tail = curr;
@@ -159,11 +157,11 @@ Nodo Recorrido::remove(){
     return eliminado;
 }
 
-void Recorrido::moveToStart(){curr=head;pos=0;}
+void ListaNodos::moveToStart(){curr=head;pos=0;}
 
-void Recorrido::moveToEnd(){curr=tail;pos=listSize;}
+void ListaNodos::moveToEnd(){curr=tail;pos=listSize;}
 
-void Recorrido::prev(){
+void ListaNodos::prev(){
     tPaso *temp;
     if (curr==head) return;
     temp = head;
@@ -172,9 +170,9 @@ void Recorrido::prev(){
     pos--;
 }
 
-void Recorrido::next(){if (curr != tail) curr = curr->next; pos++;}
+void ListaNodos::next(){if (curr != tail) curr = curr->next; pos++;}
 
-void Recorrido::clear(){
+void ListaNodos::clear(){
     moveToStart();
     for(unsigned int i=0;i<listSize+1;i++){
         if(!curr) break;
@@ -184,7 +182,7 @@ void Recorrido::clear(){
     }
 }
 
-void Recorrido::print(){
+void ListaNodos::print(){
     moveToStart();
     next();
     cout <<"\n";
@@ -198,14 +196,21 @@ void Recorrido::print(){
 
 class Vehiculo{
     public:
-        Recorrido recorrido;
+        ListaNodos recorrido;
         int tiempoRecorrido;
         double distanciaRecorrida;
 
         Vehiculo();
+        void agregarParada(Nodo nodo, double velocidad, double distancia);
 };
 
 Vehiculo::Vehiculo(){
     tiempoRecorrido = 0;
     distanciaRecorrida = 0.0;
+}
+
+void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia){
+    recorrido.insert(nodo);
+    tiempoRecorrido += distancia/velocidad;
+    distanciaRecorrida += distancia;
 }

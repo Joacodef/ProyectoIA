@@ -37,30 +37,38 @@ int main() {
     }
     free(nodos);
     
-    
+
     bool flag = false;
     int numVehiculos = 10;
+    double *distanciaAlCliente = (double*)malloc(sizeof(double));
+    ListaNodos nodosRestringidos[numVehiculos];
+    for(int i = 0; i < numVehiculos; i++) nodosRestringidos[i] = ListaNodos();
     Nodo *nodoClienteCercano;
     Vehiculo vehi[numVehiculos];
     //Inicializar vehiculos con el deposito
     for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.insert(depot);
-    //Loop que itera sobre cada vehiculo y le intenta asignar el cliente mas cercano
+    //LOOP PRINCIPAL, que itera sobre cada vehiculo y le intenta asignar el cliente mas cercano
     int j = 0;
     while(!flag){
         for(int i = 0; i < numVehiculos; i++){
-            //Se debe verificar si se cumplen las restricciones de bencina y tiempo
-            //Se debe calcular por adelantado si el tiempo alcanza para volver
-            //y si la bencina alcanza para llegar a una estacion
             vehi[i].recorrido.moveToEnd();
             Nodo nodoVehiActual = vehi[i].recorrido.curr->data;
-            nodoClienteCercano = calcularMenorDistancia(nodoVehiActual, clientes, inst.numClientes);
-            nodoClienteCercano->visitado = true;
-            vehi[i].recorrido.insert(*nodoClienteCercano);
+            //Probar que las posibles asignaciones esten permitidas segun restricciones
+            nodoClienteCercano = nodoMenorDistancia(nodoVehiActual, clientes, inst.numClientes, nodosRestringidos[i], distanciaAlCliente);
+            
+            vehi[i].agregarParada(*nodoClienteCercano, inst.velocidad, *distanciaAlCliente);
+            for(int i = 0; i < numVehiculos; i++){
+                nodosRestringidos[i].moveToEnd();
+                nodosRestringidos[i].insert(*nodoClienteCercano);
+            }
         }
         j++;
         if(j==5) flag = true;
     }
+    for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.print();
     //Liberar memoria
     for(int i = 0; i < numVehiculos; i++) vehi[i].recorrido.clear();
+    for(int i = 0; i < numVehiculos; i++) nodosRestringidos[i].clear();
+    free(distanciaAlCliente);
   return 0;
 } 
