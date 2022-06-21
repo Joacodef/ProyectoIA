@@ -4,15 +4,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAX_INTENTOS 200
-#define MAX_ITER_TOTALES 1000
+#define MAX_INTENTOS 100
+#define MAX_ITER_TOTALES 10
 
 using namespace std;
 
 // Funcion para generar recorridos para un vehiculo, de acuerdo con restricciones del GVRP
 
 void loopGeneracionRecorrido(Nodo depot, Nodo *estaciones, Nodo *clientes, Instancia inst, Vehiculo *vehiculoActual, ListaNodos *clientesVisitados, ListaNodos nodosRestringidos){
-    srand(time(NULL));
     bool recorridoTerminado = false;
     double *distanciaAlCliente = (double*)malloc(sizeof(double));
     double *distanciaAEstacion = (double*)malloc(sizeof(double));
@@ -129,10 +128,10 @@ void loopGeneracionRecorrido(Nodo depot, Nodo *estaciones, Nodo *clientes, Insta
 //Función que asigna a los vehículos sus recorridos, buscando que se cumplan las restricciones y aplicando backtracking para buscar mejores soluciones
 
 ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *clientes, Instancia inst, double eficienciaEsperada){
+    srand(time(NULL));
     bool finEjecucion = false;
     bool backTracking = false;
     double eficienciaReco = 0.0;
-    int contadorDos = 0;
     int final = 0;
     ListaVehiculos vehiculos = ListaVehiculos();
     ListaNodos clientesVisitados = ListaNodos();
@@ -149,8 +148,7 @@ ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *client
             //int iter2 = 0;
             if(backTracking){
 
-                //Aquí se vuelve en caso de haber hecho backtracking
-                //Se volverá a empezar el recorrido del vehiculo actual
+                //Si se volvió al vehículo anterior, debemos eliminar el recorrido del vehiculo que se había creado
                 vehiculoActual = &vehiculos.curr->data;
                 clientesVisitados.moveToStart();
                 for(unsigned int i=0;i<vehiculoActual->cantClientesVisitados;i++){
@@ -167,20 +165,15 @@ ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *client
                             vehiculoActual->recorrido.prev();
                         }
                     }while(vehiculoActual->recorrido.curr->data.tipo=='f');
-                    vehiculoActual->recorrido.to_string();
-                    //Posible problema de segmentation fault?
-                    clientesRestringidosBT.insert(vehiculoActual->recorrido.curr->data);
-                    cout << "Recorrido de vehiculo anterior:\n" << vehiculoActual->recorrido.to_string()<<"\n";
-                    cout << "Nuevo restringido: " << clientesRestringidosBT.to_string() << "\n";
-                    cout << "clientes visitados tras eliminar los de este recorrido" << clientesVisitados.to_string()<<"\n";
-                    vehiculoActual->reiniciarRecorrido();
                 }
-                
-                else{
-                    //Enviar a backtracking
-                    numIntentos = MAX_INTENTOS;
-                }
+                //Posible problema de segfault?
+                vehiculoActual->recorrido.to_string();
+                clientesRestringidosBT.insert(vehiculoActual->recorrido.curr->data);
+                //cout << "Recorrido de vehiculo anterior:\n" << vehiculoActual->recorrido.to_string()<<"\n";
+                //cout << "Nuevo restringido: " << clientesRestringidosBT.to_string() << "\n";
+                vehiculoActual->reiniciarRecorrido();
                 backTracking = false;
+
             }
             else{
 
@@ -207,13 +200,13 @@ ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *client
                 cout << "\nIteracion nueva\n";
                 cout << "\nclientes visitados antes de generacion de recorrido: " << clientesVisitados.to_string() <<"\n";
                 cout << "clientes restringidos: "<< clientesRestringidosTemp.to_string()<<"\n";
-                ListaNodos visitadosYRestringidos = concatenar(&clientesVisitados, &clientesRestringidosTemp);
-                visitadosYRestringidos = concatenar(&visitadosYRestringidos, &clientesRestringidosBT);
+                ListaNodos visitadosYRestringidos = concatenar(clientesVisitados, clientesRestringidosTemp);
+                visitadosYRestringidos = concatenar(visitadosYRestringidos, clientesRestringidosBT);
+
                 cout << "concatenacion de las 3 cosas: "<< visitadosYRestringidos.to_string()<<"\n";
-                
+                cout << "\nclientes visitados antes de generacion de recorrido 1: " << clientesVisitados.to_string() <<"\n";
                 loopGeneracionRecorrido(depot, estaciones, clientes, inst, vehiculoActual, &clientesVisitados, visitadosYRestringidos);
-                
-                cout << "\nclientes visitados despues de generacion de recorrido: " << clientesVisitados.to_string() <<"\n";
+                cout << "\ncantidad visitados despues de generacion de recorrido: " << clientesVisitados.listSize <<"\n";
                 eficienciaReco = vehiculoActual->recorrido.listSize/vehiculoActual->distanciaTotalRecorrida;
                 cout<<"\nNuevo recorrido del vehiculo "<< vehiculoActual->recorrido.to_string() <<"\n";
                 if(vehiculoActual->cantClientesVisitados == 1) break;
@@ -224,12 +217,14 @@ ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *client
                     
                     if(clientesVisitados.listSize + clientesRestringidosTemp.listSize + clientesRestringidosBT.listSize < abs(inst.numClientes)){
                         
-                        //Se deben quitar los nodos que haya visitado
-                        cout << "ClientesVisitados: "<<vehiculoActual->cantClientesVisitados<<"\n"; 
+                        //Se deben quitar los nodos que haya visitado 
+                        cout << "\nclientes visitados antes de eliminar: " << clientesVisitados.to_string() <<"\n";
                         clientesVisitados.moveToStart();
+                        //cout << "ClientesVisitados: "<<vehiculoActual->cantClientesVisitados<<"\n";
                         for(unsigned int i=0;i<vehiculoActual->cantClientesVisitados;i++){
                             clientesVisitados.remove();
                         }
+                        cout << "\nclientes visitados antes de eliminar: " << clientesVisitados.to_string() <<"\n";
                         //Agregar nodo a restringir a la lista de nodos restringidos, que es temporal, se resetea cuando ya hayamos restringido todos los clientes o terminado de iterar.
                         //int iter = 0;
                         if(abs(posicionDeRestriccion)<vehiculoActual->recorrido.listSize-2){
@@ -262,20 +257,20 @@ ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *client
                         
                         clientesRestringidosTemp.clear();
                         posicionDeRestriccion++;
+                        cout << "\nclientes visitados antes de eliminar: " << clientesVisitados.to_string() <<"\n";
                         clientesVisitados.moveToStart();
                         for(unsigned int i=0;i<vehiculoActual->cantClientesVisitados;i++){
                             clientesVisitados.remove();
                         }
+                        cout << "\nclientes visitados despues de eliminar: " << clientesVisitados.to_string() <<"\n";
                         vehiculoActual->reiniciarRecorrido();
                         vehiculoActual->agregarParada(depot,inst.velocidad,0.0,0,0);
-                        
                         numIntentos++; 
                     }
                 }
                 else{
-                    cout << "\n\n\n\n\n===========EFICIENCIA ALCANZADA, PASANDO A SIGUIENTE VEHICULO============\n\n\n\n\n\n";
+                    //cout << "\n\n\n\n\n===========EFICIENCIA ALCANZADA, PASANDO A SIGUIENTE VEHICULO============\n\n\n\n\n\n";
                     clientesRestringidosTemp.clear();
-                    contadorDos++;
                     break;
                 }
             }
@@ -284,21 +279,14 @@ ListaVehiculos loopGeneracionSolucion(Nodo depot, Nodo *estaciones, Nodo *client
 
             //Si no se pudo alcanzar la eficiencia, se vuelve al recorrido anterior, y se restringe un nodo al azar de ese recorrido
             //Antes se asegura de eliminar las listas hechas durante el intento de recorrido actual
-            clientesRestringidosTemp.clear();
-            cout << "clientes visitados antes del backTracking" << clientesVisitados.to_string()<<"\n";
-            cout << "cantidad de clientes visitados en el wea acutal " << vehiculoActual->cantClientesVisitados<<"\n";
             vehiculoActual->reiniciarRecorrido();
             vehiculos.moveToEnd();
             vehiculos.prev();
             vehiculos.remove();
-            cout << "\n\n\n\n\n===========REALIZANDO BACKTRACKING===========\n\n\n\n\n";
-            contadorDos--;
+            //cout << "\n\n\n\n\n===========REALIZANDO BACKTRACKING===========\n\n\n\n\n";
             backTracking = true;
         }
-        if(abs(contadorDos)==2){
-            clientesRestringidosBT.clear();
-            contadorDos = 0;
-        }
+        clientesRestringidosBT.clear();
         
         final++;
         if(final >= MAX_ITER_TOTALES){

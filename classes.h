@@ -85,15 +85,13 @@ class ListaNodos{
         tPaso *head;
         tPaso *tail;
         tPaso *curr; // curr apunta al nodo anterior al actual
-    
         unsigned int listSize;
         unsigned int pos;
+    
         ListaNodos();
-        tPaso* getCurr();
         int insert(Nodo item); //insertar en pos actual
         void remove(); //remover nodo en pos actual
         void moveToStart();
-        void moveToStart(tPaso* curr1, tPaso* head1);
         void moveToEnd();
         void prev();
         void next();
@@ -106,8 +104,6 @@ ListaNodos::ListaNodos(){
     listSize = 0;
     pos = 0;
 }
-
-tPaso* ListaNodos::getCurr(){return curr;}
 
 int ListaNodos::insert(Nodo item){
     tPaso *aux = curr->next;
@@ -132,12 +128,6 @@ void ListaNodos::moveToStart(){
     curr=head;
     pos=0;
 }
-
-void ListaNodos::moveToStart(tPaso* curr1, tPaso* head1){
-    curr1=head1;
-    pos=0;
-}
-
 
 void ListaNodos::moveToEnd(){
     curr=tail;
@@ -172,7 +162,7 @@ string ListaNodos::to_string(){
     moveToStart();
     next();
     if(listSize != 0){
-        while(curr != tail){
+        for(int i=0;i<listSize;i++){
             output += std::to_string(curr->data.ID) + curr->data.tipo + "-";
             next();
         }
@@ -184,6 +174,7 @@ string ListaNodos::to_string(){
     else{
         output = "No hay nodos en la lista";
     }
+    moveToStart();
     return output;
 }
 
@@ -283,15 +274,9 @@ void ListaVehiculos::remove(){
     free(aux);
 }
 
-void ListaVehiculos::moveToStart(){
-    curr=head;
-    pos=0;
-}
+void ListaVehiculos::moveToStart(){curr=head;pos=0;}
 
-void ListaVehiculos::moveToEnd(){
-    curr=tail;
-    pos=listSize;
-}
+void ListaVehiculos::moveToEnd(){curr=tail;pos=listSize;}
 
 void ListaVehiculos::prev(){
     tVehi *temp;
@@ -302,12 +287,7 @@ void ListaVehiculos::prev(){
     pos--;
 }
 
-void ListaVehiculos::next(){
-    if (curr != tail){ 
-        curr = curr->next; 
-        pos++;
-    }
-}
+void ListaVehiculos::next(){if (curr != tail) curr = curr->next; pos++;}
 
 void ListaVehiculos::clear(){
     moveToStart();
@@ -320,29 +300,29 @@ void ListaVehiculos::clear(){
 }
 
 
-ListaNodos concatenar(ListaNodos *lista1, ListaNodos *lista2){
+ListaNodos concatenar(ListaNodos lista1, ListaNodos lista2){
     ListaNodos concatenacion = ListaNodos();
-    lista1->moveToStart();
-    lista1->next();
-    lista2->moveToStart();
-    lista2->next();
-    if(lista1->listSize>0 && lista2->listSize>0){
-        for(unsigned int i=0;i<lista1->listSize;i++){
-            concatenacion.insert(lista1->curr->data);
-            lista1->next();
+    lista1.moveToStart();
+    lista1.next();
+    lista2.moveToStart();
+    lista2.next();
+    if(lista1.listSize>0 && lista2.listSize>0){
+        for(unsigned int i=0;i<lista1.listSize;i++){
+            concatenacion.insert(lista1.curr->data);
+            lista1.next();
             concatenacion.next();
         }
-        for(unsigned int i=0;i<lista2->listSize;i++){
-            concatenacion.insert(lista2->curr->data);
-            lista2->next();
+        for(unsigned int i=0;i<lista2.listSize;i++){
+            concatenacion.insert(lista2.curr->data);
+            lista2.next();
             concatenacion.next();
         }
     }
-    else if(lista1->listSize>0){
-        concatenacion = *lista1;
+    else if(lista1.listSize>0){
+        concatenacion = lista1;
     }
-    else if(lista2->listSize>0){
-        concatenacion = *lista2;
+    else if(lista2.listSize>0){
+        concatenacion = lista2;
     }
     return concatenacion;
 }
