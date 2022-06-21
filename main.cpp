@@ -9,10 +9,10 @@
 using namespace std;
 
 int main() {
-    double eficienciaEsperada = 0.07;
+    double eficienciaEsperada = 0.02;
 
     for(int i=1;i<2;i++){
-        for(int j=1;j<2;j++){
+        for(int j=1;j<20;j++){
             //-----EXTRACCIÓN DE DATOS DE ARCHIVOS (SE RESUELVEN AB101-AB220)-----
             string nombreArchivo = "";
             if(j<10){
@@ -61,6 +61,7 @@ int main() {
             
             ListaVehiculos vehiculos = loopGeneracionSolucion(depot, estaciones, clientes, inst, eficienciaEsperada);
 
+
             /*
             vehiculos.moveToStart();
             vehiculos.next();
@@ -90,7 +91,7 @@ int main() {
 
             for(unsigned int i = 0; i < vehiculos.listSize; i++){
                 sumaDistancias += vehiculos.curr->data.distanciaTotalRecorrida;
-                sumaClientes += vehiculos.curr->data.recorrido.listSize;
+                sumaClientes += vehiculos.curr->data.cantClientesVisitados;
                 if(vehiculos.curr->data.distanciaTotalRecorrida > inst.maxDistancia){
                     distanciasExcedidas[i] = vehiculos.curr->data.distanciaTotalRecorrida - inst.maxDistancia;
                 }

@@ -188,6 +188,7 @@ Vehiculo::Vehiculo(){
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
     distanciaDesdeRecarga = 0.0;
+    cantClientesVisitados = 0;
 }
 
 void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga){
