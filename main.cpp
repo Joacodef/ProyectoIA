@@ -4,13 +4,15 @@
 #include <bits/stdc++.h>
 #include "classes.h"
 #include "functions.h"
-#include "loopPrincipal.h"
+#include "generadorSoluciones.h"
 
 using namespace std;
 
 int main() {
-    for(int i=1;i<3;i++){
-        for(int j=1;j<21;j++){
+    double eficienciaEsperada = 0.07;
+
+    for(int i=1;i<2;i++){
+        for(int j=1;j<2;j++){
             //-----EXTRACCIÓN DE DATOS DE ARCHIVOS (SE RESUELVEN AB101-AB220)-----
             string nombreArchivo = "";
             if(j<10){
@@ -19,7 +21,6 @@ int main() {
             else{
                 nombreArchivo = "AB"+to_string(i)+to_string(j);
             }
-            cout << nombreArchivo << "\n";
             string archivoInput = "Instancias/"+nombreArchivo+".dat";
             time_t start, end;
             ifstream input(archivoInput);
@@ -56,9 +57,10 @@ int main() {
             input.close();
             free(nodos);
 
-            //-----EJECUCION DEL LOOP PRINCIPAL Y OBTENCIÓN DE RESULTADOS------
+            //-----EJECUCION DEL GENERADOR DE SOLUCIONES Y OBTENCIÓN DE RESULTADOS------
             
-            ListaVehiculos vehiculos = loopPrincipal(depot, estaciones, clientes, inst);
+            ListaVehiculos vehiculos = loopGeneracionSolucion(depot, estaciones, clientes, inst, eficienciaEsperada);
+
             /*
             vehiculos.moveToStart();
             vehiculos.next();
@@ -76,26 +78,41 @@ int main() {
             string archivoOutput = "Soluciones/"+nombreArchivo+".out";
             ofstream output(archivoOutput);
             double tiempoEjecucion = double(end-start)/ double(CLOCKS_PER_SEC);
-            /*
-            cout << std::fixed;
-            cout << std::setprecision(10);
-            cout << tiempoEjecucion << "\n";*/
-            //Calcular distancia total recorrida
+
+            //Calcular valores para mostrar:
+
             float sumaDistancias = 0.0;
+            int sumaClientes = 0;
+            float distanciasExcedidas[vehiculos.listSize];
+
             vehiculos.moveToStart();
             vehiculos.next();
+
             for(unsigned int i = 0; i < vehiculos.listSize; i++){
                 sumaDistancias += vehiculos.curr->data.distanciaTotalRecorrida;
+                sumaClientes += vehiculos.curr->data.recorrido.listSize;
+                if(vehiculos.curr->data.distanciaTotalRecorrida > inst.maxDistancia){
+                    distanciasExcedidas[i] = vehiculos.curr->data.distanciaTotalRecorrida - inst.maxDistancia;
+                }
+                else{
+                    distanciasExcedidas[i] = 0.0;
+                }
                 vehiculos.next();
             } 
             //Escribir en el archivo de output
             vehiculos.moveToStart();
             vehiculos.next();
             output << std::fixed;
-            output << std::setprecision(12);
-            output << std::fixed << sumaDistancias << "    " << inst.numClientes << "     " << vehiculos.listSize << "     "<< tiempoEjecucion <<"\n";
+            output << std::setprecision(2);
+            output << std::fixed << sumaDistancias << "    " << sumaClientes << "     " << vehiculos.listSize << "     ";
+            output << std::setprecision(10);
+            output << tiempoEjecucion <<"\n";
             for(unsigned int i = 0; i < vehiculos.listSize; i++){ 
-                output << "Ruta vehiculo "<< i << "     " << vehiculos.curr->data.distanciaTotalRecorrida << "    " << vehiculos.curr->data.tiempoTranscurrido << "\n";
+                output << std::setprecision(6);
+                output << vehiculos.curr->data.recorrido.to_string() << "     " << vehiculos.curr->data.distanciaTotalRecorrida << "    " 
+                            << vehiculos.curr->data.tiempoTranscurrido << "     ";
+                output << std::setprecision(2);
+                output << distanciasExcedidas[i] <<"\n";
                 vehiculos.next();
             }
             output.close();

@@ -51,6 +51,7 @@ class Nodo{
         char tipo;
         double longitud;
         double latitud;
+        //bool restringidoTemp;
         Nodo *next;
 
         Nodo();
@@ -62,6 +63,7 @@ Nodo::Nodo(){
     tipo = '\0';
     longitud = 0.0;
     latitud = 0.0;
+    //restringidoTemp = false;
 }
 
 void Nodo::mostrar(){
@@ -88,7 +90,7 @@ class ListaNodos{
     
         ListaNodos();
         int insert(Nodo item); //insertar en pos actual
-        Nodo remove(); //remover nodo en pos actual
+        void remove(); //remover nodo en pos actual
         void moveToStart();
         void moveToEnd();
         void prev();
@@ -113,15 +115,13 @@ int ListaNodos::insert(Nodo item){
     return pos;
 }
 
-Nodo ListaNodos::remove(){
-    Nodo eliminado;
-    if(curr==tail) return eliminado;
+void ListaNodos::remove(){
+    if(curr==tail) return;
     if(curr->next == tail) tail = curr;
     tPaso *aux = curr->next;
-    eliminado = aux->data;
     curr->next = curr->next->next;
+    listSize--;
     free(aux);
-    return eliminado;
 }
 
 void ListaNodos::moveToStart(){curr=head;pos=0;}
@@ -140,26 +140,31 @@ void ListaNodos::prev(){
 void ListaNodos::next(){if (curr != tail) curr = curr->next; pos++;}
 
 void ListaNodos::clear(){
-    moveToStart();
-    for(unsigned int i=0;i<listSize+1;i++){
-        if(!curr) break;
-        tPaso *aux = curr;
-        curr = curr->next;
-        free(aux);
+    if(listSize!=0){
+        moveToStart();
+        while(listSize>0){
+            remove();
+        }
     }
 }
 
 string ListaNodos::to_string(){
-    string output;
+    string output = "\n";
     moveToStart();
     next();
-    output = "\n";
-    while(curr != tail){
-        output += std::to_string(curr->data.ID) + std::to_string(curr->data.tipo) + " -> ";
-        next();
+    if(listSize != 0){
+        while(curr != tail){
+            output += std::to_string(curr->data.ID) + curr->data.tipo + "-";
+            next();
+        }
+        output += std::to_string(curr->data.ID) + curr->data.tipo;
+        while(output.length()<50){
+            output += " ";
+        }
     }
-    output += std::to_string(curr->data.ID) + std::to_string(curr->data.tipo);
-    output += "\n";
+    else{
+        output = "No hay nodos en la lista";
+    }
     return output;
 }
 
@@ -175,11 +180,13 @@ class Vehiculo{
 
         Vehiculo();
         void agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga);
+        void reiniciarRecorrido();
 };
 
 Vehiculo::Vehiculo(){
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
+    distanciaDesdeRecarga = 0.0;
 }
 
 void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga){
@@ -201,6 +208,13 @@ typedef struct tVehi{
     struct tVehi *next;
 } tVehi;
 
+void Vehiculo::reiniciarRecorrido(){
+    tiempoTranscurrido = 0;
+    distanciaTotalRecorrida = 0.0;
+    distanciaDesdeRecarga = 0.0;
+    recorrido.clear();
+}
+
 //ListaVehiculos tambien es una lista enlazada
 
 class ListaVehiculos{
@@ -213,7 +227,7 @@ class ListaVehiculos{
 
     ListaVehiculos();
     int insert(Vehiculo item); //insertar en pos actual
-    Vehiculo remove(); //remover nodo en pos actual
+    void remove();
     void moveToStart();
     void moveToEnd();
     void prev();
@@ -237,15 +251,13 @@ int ListaVehiculos::insert(Vehiculo item){
     return pos;
 }
 
-Vehiculo ListaVehiculos::remove(){
-    Vehiculo eliminado;
-    if(curr==tail) return eliminado;
+void ListaVehiculos::remove(){
+    if(curr==tail) return;
     if(curr->next == tail) tail = curr;
     tVehi *aux = curr->next;
-    eliminado = aux->data;
     curr->next = curr->next->next;
+    listSize--;
     free(aux);
-    return eliminado;
 }
 
 void ListaVehiculos::moveToStart(){curr=head;pos=0;}
@@ -271,4 +283,26 @@ void ListaVehiculos::clear(){
         curr = curr->next;
         free(aux);
     }
+}
+
+
+ListaNodos concatenar(ListaNodos *lista1, ListaNodos *lista2){
+    ListaNodos concatenacion = ListaNodos();
+    lista1->moveToStart();
+    lista1->next();
+    if(lista1->listSize>0 && lista2->listSize>0){
+        for(unsigned int i;i<lista1->listSize;i++){
+            concatenacion.insert(lista1->curr->data);
+        }
+        for(unsigned int i;i<lista2->listSize;i++){
+            concatenacion.insert(lista2->curr->data);
+        }
+    }
+    else if(lista1->listSize>0){
+        concatenacion = *lista1;
+    }
+    else if(lista2->listSize>0){
+        concatenacion = *lista2;
+    }
+    return concatenacion;
 }

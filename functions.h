@@ -54,6 +54,9 @@ double *calcularTodasDistancias(Nodo centro, Nodo *demasNodos, int size){
 bool nodoRestringido(Nodo actual,ListaNodos nodosRestringidos){
     nodosRestringidos.moveToStart();
     nodosRestringidos.next();
+    if(actual.ID == -1) return true;
+    if(nodosRestringidos.listSize == 0) return false;
+    //if(actual.restringidoTemp) return true;
     for(unsigned int i = 0;i<nodosRestringidos.listSize+1;i++){
         if(actual.ID == nodosRestringidos.curr->data.ID && actual.tipo == nodosRestringidos.curr->data.tipo){
             return true;
@@ -114,4 +117,5 @@ void extraerNodos(ifstream& archivo, int numEstaciones, int numClientes, Nodo* n
     memcpy(nodos,nodosAux,sizeof(Nodo)*(numClientes+numClientes+1));
     free(nodosAux);
 }
+
 
