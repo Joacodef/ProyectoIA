@@ -28,7 +28,7 @@ int main() {
         extraerNodos(input,inst.numEstaciones,inst.numClientes,nodos);
     }
     else{
-        cout << "ERROR EN LECTURA DE ARCHIVO\n";
+        cout << "\nERROR EN LECTURA DE ARCHIVO\n";
         exit(-1);
     }
     //Almacenar depot, estaciones y clientes en variables de stack
