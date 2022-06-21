@@ -177,6 +177,7 @@ class Vehiculo{
         int tiempoTranscurrido;
         double distanciaTotalRecorrida;
         double distanciaDesdeRecarga;
+        unsigned int cantClientesVisitados;
 
         Vehiculo();
         void agregarParada(Nodo nodo, double velocidad, double distancia, int tiempoServicio, int tiempoRecarga);
@@ -200,6 +201,7 @@ void Vehiculo::agregarParada(Nodo nodo, double velocidad, double distancia, int 
     }
     else if(nodo.tipo=='c'){
         tiempoTranscurrido += tiempoServicio;
+        cantClientesVisitados++;
     }
 }
 
@@ -212,6 +214,7 @@ void Vehiculo::reiniciarRecorrido(){
     tiempoTranscurrido = 0;
     distanciaTotalRecorrida = 0.0;
     distanciaDesdeRecarga = 0.0;
+    cantClientesVisitados = 0;
     recorrido.clear();
 }
 
@@ -290,12 +293,18 @@ ListaNodos concatenar(ListaNodos *lista1, ListaNodos *lista2){
     ListaNodos concatenacion = ListaNodos();
     lista1->moveToStart();
     lista1->next();
+    lista2->moveToStart();
+    lista2->next();
     if(lista1->listSize>0 && lista2->listSize>0){
-        for(unsigned int i;i<lista1->listSize;i++){
+        for(unsigned int i=0;i<lista1->listSize;i++){
             concatenacion.insert(lista1->curr->data);
+            lista1->next();
+            concatenacion.next();
         }
-        for(unsigned int i;i<lista2->listSize;i++){
+        for(unsigned int i=0;i<lista2->listSize;i++){
             concatenacion.insert(lista2->curr->data);
+            lista2->next();
+            concatenacion.next();
         }
     }
     else if(lista1->listSize>0){
