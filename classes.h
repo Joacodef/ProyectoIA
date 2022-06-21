@@ -2,7 +2,6 @@
 
 using namespace std;
 
-
 //Clase que representa a la instancia:
 
 class Instancia{
