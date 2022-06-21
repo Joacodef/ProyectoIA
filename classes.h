@@ -85,13 +85,15 @@ class ListaNodos{
         tPaso *head;
         tPaso *tail;
         tPaso *curr; // curr apunta al nodo anterior al actual
+    
         unsigned int listSize;
         unsigned int pos;
-    
         ListaNodos();
+        tPaso* getCurr();
         int insert(Nodo item); //insertar en pos actual
         void remove(); //remover nodo en pos actual
         void moveToStart();
+        void moveToStart(tPaso* curr1, tPaso* head1);
         void moveToEnd();
         void prev();
         void next();
@@ -104,6 +106,8 @@ ListaNodos::ListaNodos(){
     listSize = 0;
     pos = 0;
 }
+
+tPaso* ListaNodos::getCurr(){return curr;}
 
 int ListaNodos::insert(Nodo item){
     tPaso *aux = curr->next;
@@ -124,9 +128,21 @@ void ListaNodos::remove(){
     free(aux);
 }
 
-void ListaNodos::moveToStart(){curr=head;pos=0;}
+void ListaNodos::moveToStart(){
+    curr=head;
+    pos=0;
+}
 
-void ListaNodos::moveToEnd(){curr=tail;pos=listSize;}
+void ListaNodos::moveToStart(tPaso* curr1, tPaso* head1){
+    curr1=head1;
+    pos=0;
+}
+
+
+void ListaNodos::moveToEnd(){
+    curr=tail;
+    pos=listSize;
+}
 
 void ListaNodos::prev(){
     tPaso *temp;
@@ -137,7 +153,10 @@ void ListaNodos::prev(){
     pos--;
 }
 
-void ListaNodos::next(){if (curr != tail) curr = curr->next; pos++;}
+void ListaNodos::next(){
+    if (curr != tail) curr = curr->next; 
+    pos++;
+}
 
 void ListaNodos::clear(){
     if(listSize!=0){
@@ -264,9 +283,15 @@ void ListaVehiculos::remove(){
     free(aux);
 }
 
-void ListaVehiculos::moveToStart(){curr=head;pos=0;}
+void ListaVehiculos::moveToStart(){
+    curr=head;
+    pos=0;
+}
 
-void ListaVehiculos::moveToEnd(){curr=tail;pos=listSize;}
+void ListaVehiculos::moveToEnd(){
+    curr=tail;
+    pos=listSize;
+}
 
 void ListaVehiculos::prev(){
     tVehi *temp;
@@ -277,7 +302,12 @@ void ListaVehiculos::prev(){
     pos--;
 }
 
-void ListaVehiculos::next(){if (curr != tail) curr = curr->next; pos++;}
+void ListaVehiculos::next(){
+    if (curr != tail){ 
+        curr = curr->next; 
+        pos++;
+    }
+}
 
 void ListaVehiculos::clear(){
     moveToStart();

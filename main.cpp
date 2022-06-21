@@ -9,10 +9,10 @@
 using namespace std;
 
 int main() {
-    double eficienciaEsperada = 0.02;
+    double eficienciaEsperada = 0.05;
 
     for(int i=1;i<2;i++){
-        for(int j=1;j<20;j++){
+        for(int j=1;j<2;j++){
             //-----EXTRACCIÓN DE DATOS DE ARCHIVOS (SE RESUELVEN AB101-AB220)-----
             string nombreArchivo = "";
             if(j<10){
