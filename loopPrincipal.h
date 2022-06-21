@@ -1,5 +1,3 @@
-#include <iostream>
-#include <fstream>
 #include <cstring>
 #include <bits/stdc++.h>
 
@@ -40,20 +38,23 @@ ListaVehiculos loopPrincipal(Nodo depot, Nodo *estaciones, Nodo *clientes, Insta
                 finEjecucion = true;
             }  
             else{
+                
                 //Buscar el cliente a menor distancia no asignado a otros vehículos
                 nodoClienteCercano = nodoMenorDistancia(nodoVehiculoActual, clientes, inst.numClientes, clientesVisitados, distanciaAlCliente);
                 //Ver si se tiene tiempo para llegar directamente
                 double tiempoEnLlegar = *distanciaAlCliente/inst.velocidad;
                 if(vehiculoActual->tiempoTranscurrido+tiempoEnLlegar+inst.tiempoServicio < inst.maxTiempo){
+
                     //Chequear combustible suficiente
                     if(vehiculoActual->distanciaDesdeRecarga+*distanciaAlCliente > inst.maxDistancia){
+
                         // Si no hay combustible, buscar estación más cercana desde la que haya tiempo suficiente para volver al depot
                         bool EstacionEncontrada = false;
                         ListaNodos estacionesNoPermitidas = ListaNodos();
                         while(!EstacionEncontrada){
                             if(estacionesNoPermitidas.listSize == abs(inst.numEstaciones)){
-                                //No hay estaciones que me permitan volver al depot (no puedo volver al depot)
-                                //HACER BACKTRACKING?
+
+                                //No hay estaciones que me permitan volver al depot, entonces se vuelve al depot aunque se rompan restrincciones
                                 nodoSiguiente = &depot;
                                 recorridoTerminado = true;
                                 break;
@@ -72,6 +73,7 @@ ListaVehiculos loopPrincipal(Nodo depot, Nodo *estaciones, Nodo *clientes, Insta
                         }
                     }
                     else{
+
                         //Si se tiene combustible, chequear si se tiene tiempo para volver directamente al depot desde el cliente
                         double distanciaClienteDepot = calcularDistancia(nodoClienteCercano->longitud,nodoClienteCercano->latitud,depot.longitud,depot.latitud);
                         double tiempoClienteYDepot = (distanciaClienteDepot+*distanciaAlCliente)/inst.velocidad;
@@ -81,23 +83,28 @@ ListaVehiculos loopPrincipal(Nodo depot, Nodo *estaciones, Nodo *clientes, Insta
                             recorridoTerminado = true;
                         }
                         else{
+
                             //Si se tiene tiempo, ver si desde ese cliente se tendría combustible para llegar a estación más cercana (sino se quedaría "atascado" en el cliente)
                             ListaNodos listaAux = ListaNodos();
                             Nodo *estacionCercana = nodoMenorDistancia(*nodoClienteCercano,estaciones,inst.numEstaciones,listaAux,distanciaAEstacion);
                             if(vehiculoActual->distanciaDesdeRecarga + *distanciaAlCliente + *distanciaAEstacion > inst.maxDistancia){
+
                                 //Ya que no alcanza, se debe recargar combustible o volver al depot, para decidir, se chequea que el tiempo restante sea suficiente
                                 double tiempoEstacion = *distanciaAEstacion / inst.velocidad;
                                 if(vehiculoActual->tiempoTranscurrido + inst.tiempoRecarga + tiempoEstacion > inst.maxTiempo){
+                                   
                                     //No se puede ir a la estacion de recarga por falta de tiempo, entonces se debe volver al depot, aun si se excede distancia
                                     nodoSiguiente = &depot;
                                     recorridoTerminado = true;
                                 }
                                 else{
+
                                     //Se elige recargar combustible en vez de ir al cliente
                                     nodoSiguiente = estacionCercana;
                                 }
                             }
                             else{
+
                                 //Si se cumplen todas las restricciones, se va al cliente más cercano
                                 nodoSiguiente = nodoClienteCercano;
                             }
@@ -105,6 +112,7 @@ ListaVehiculos loopPrincipal(Nodo depot, Nodo *estaciones, Nodo *clientes, Insta
                     }                   
                 }
                 else{
+
                     //Si no se tiene tiempo para llegar directamente, se vuelve al depot
                     nodoSiguiente = &depot;
                     recorridoTerminado = true;
@@ -125,6 +133,7 @@ ListaVehiculos loopPrincipal(Nodo depot, Nodo *estaciones, Nodo *clientes, Insta
     //Liberar memoria
     free(distanciaAlCliente);
     free(distanciaAEstacion);
+    clientesVisitados.clear();
 
     return vehiculos;
 }

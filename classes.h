@@ -1,4 +1,5 @@
 #include <math.h>
+#include <iostream>
 
 using namespace std;
 
@@ -93,7 +94,7 @@ class ListaNodos{
         void prev();
         void next();
         void clear();
-        void print();
+        string to_string();
 };
 
 ListaNodos::ListaNodos(){
@@ -148,16 +149,18 @@ void ListaNodos::clear(){
     }
 }
 
-void ListaNodos::print(){
+string ListaNodos::to_string(){
+    string output;
     moveToStart();
     next();
-    cout <<"\n";
+    output = "\n";
     while(curr != tail){
-        cout << curr->data.ID << curr->data.tipo << " -> ";
+        output += std::to_string(curr->data.ID) + std::to_string(curr->data.tipo) + " -> ";
         next();
     }
-    cout << curr->data.ID << curr->data.tipo;
-    cout << "\n";
+    output += std::to_string(curr->data.ID) + std::to_string(curr->data.tipo);
+    output += "\n";
+    return output;
 }
 
 
@@ -216,7 +219,6 @@ class ListaVehiculos{
     void prev();
     void next();
     void clear();
-    void print();
 };
 
 ListaVehiculos::ListaVehiculos(){
