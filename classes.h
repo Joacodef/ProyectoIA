@@ -162,7 +162,7 @@ string ListaNodos::to_string(){
     moveToStart();
     next();
     if(listSize != 0){
-        for(int i=0;i<listSize;i++){
+        for(unsigned int i=0;i<listSize;i++){
             output += std::to_string(curr->data.ID) + curr->data.tipo + "-";
             next();
         }
